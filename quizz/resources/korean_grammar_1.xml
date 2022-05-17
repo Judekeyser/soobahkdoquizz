@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<kgrammar>
+    <word id="soo">
+        <lit>Soo</lit>
+    </word>
+    <word id="bahk">
+        <lit>Bahk</lit>
+    </word>
+    <word id="do">
+        <lit>Do</lit>
+    </word>
+    <word id="moo">
+        <lit>Moo</lit>
+    </word>
+    <word id="duk">
+        <li>Duk</li>
+    </word>
+    <word id="kwan">
+        <li>Kwan</li>
+    </word>
+    <word id="kwanjanim">
+        <word ref="kwan" />
+        <word>
+            <lit>Ja</lit>
+        </word>
+        <word ref="nim" />
+    </word>
+    <word id="nim">
+        <lit>Nim</lit>
+    </word>
+</kgrammar>

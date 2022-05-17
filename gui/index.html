@@ -1,0 +1,314 @@
+<!DOCTYPE HTML>
+
+<html lang="fr-be">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script type="application/javascript" src="https://unpkg.com/react@18.1.0/umd/react.production.min.js"></script>
+    <script type="application/javascript" src="https://unpkg.com/react-dom@18.1.0/umd/react-dom.production.min.js"></script>
+    
+    <script type="application/javascript" src="ReactOctopusPattern.js"></script>
+    <script type="application/javascript" src="soobahkdo.js"></script>
+
+    <style>
+.muted-off { display: none; }
+* {
+    box-sizing: border-box;
+    margin: 0; padding: 0;
+}
+
+main {
+    min-width: 600px;
+    position: relative;
+}
+@media only screen and (min-width: 900px) { 
+  .quizz-board {
+    width: 67%;
+    float: right;
+  }
+  
+  .aside-configs {
+    width: 33%;
+  }
+  
+  main::after {
+    content: "";
+    display: block;
+    clear: both;
+  }
+  
+  .ws-stack > .col {
+    float: none!important;
+    width: 100%!important;
+  }
+}
+
+p {
+    margin-bottom: 1em;
+    line-height: 1.4em;
+}
+
+.center {
+    text-align: center;
+}
+
+.boxed {
+    border: 1px solid black;
+    padding: 1em;
+    margin: 1em;
+    margin-bottom: 2em;
+    box-shadow: 4px 4px #888888;
+    border-radius: 12px;
+}
+
+.col-1-1, .col-1-1-1 {
+    width: 100%;
+}
+
+.row > .col {
+    float: left;
+}
+
+.row::after {
+    content: "";
+    display: block;
+    clear: both;
+}
+
+.col-1-1 > .col {
+    width: 50%;
+    display: inline-block;
+}
+.col-1-1-1 > .col {
+    width: 33%;
+    display: inline-block;
+}
+
+.checkbox ul {
+    padding-left: 2em;
+}
+.checkbox li {
+    cursor: pointer;
+    list-style-type: none;
+    line-height: 1.4em;
+    padding-left: -1em;
+}
+.checkbox li.isSelected {
+    list-style-type: circle;
+    font-weight: bold;
+}
+.checkbox li.isNotAvailable {
+    color: #999;
+    text-decoration: line-through;
+    cursor: not-allowed;
+}
+
+.quizz-off .quizz-on-panel {
+    display: none;
+}
+.quizz-on .quizz-off-panel {
+    display: none;
+}
+    </style>
+
+    <title>Soo Bahk Do - Quizz</title>
+  </head>
+  <body>
+  
+<main>
+
+    <div class="quizz-board">
+        <div class="boxed center">
+            <div class="quizz-on-panel">
+                <div id="quizz-panel-control"></div>
+            </div>
+                <hr style="margin-top: 1em; margin-bottom: 0.8em; width: 75%; text-align: center; margin-left: auto; margin-right: auto;">
+            <div>
+                <div class="row col-1-1-1">
+                    <div class="col"><div id="quizz-cancel-control"></div></div>
+                    <div class="col"><div id="quizz-score-control"></div></div>
+                    <div class="col"><div id="quizz-emitter-control"></div></div>
+                </div>
+            </div>
+        </div>
+    </div
+    
+    ><div class="aside-configs">
+        <div class="row ws-stack col-1-1">
+            <div class="col">
+                <div class="boxed">
+                    <p>Choisis le grade pour lequel tu joues&nbsp;! Fais ton choix dans la liste, ou bien utilise ta ceinture</p>
+                    <div class="row col-1-1">
+                         <div class="col center"><div id="rank-config-panel"></div></div
+                        ><div class="col center"><div id="belt-config-panel"></div></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col">
+                <div class="boxed">
+                    <p>Choisis les thèmes sur lesquels tu souhaites t'entrainer</p>
+                    <div class="checkbox"><div id="theme-config-panel"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+  
+  <script>
+/********** GUI COMPONENTS ***********/
+
+var RankForm = $Proxy("rank-config-panel", ({ rank, handleRankChange }) => {
+    function handleSystemChange(e) {
+        var system = e.target.value;
+        handleRankChange({ rank: { system, number: system == "DAN" ? 1 : 10 } });
+    }
+    function handleNumberChange(e) {
+        var number = parseInt(e.target.value);
+        handleRankChange({ rank: { ...rank, number } });
+    }
+    
+    var range = numberRangeOfRank(rank);
+
+    return $("div")(_, [
+        $("select")({
+            value: rank.number,
+            onChange: handleNumberChange
+        }, range.map(i => $("option")({ value: i }, i))),
+        $("select")({
+            value: rank.system,
+            onChange: handleSystemChange
+        }, [
+            $("option")({ value: "KUP" }, "Kup"),
+            $("option")({ value: "DAN" }, "Dan")
+        ])
+    ])
+})
+
+var BeltForm = $Proxy("belt-config-panel", ({ rank, handleRankChange }) => {
+    var belt = rankToBelt(rank);
+    
+    var stripsRange = stripsRangeOfBelt(belt);
+
+    function handleBeltColorChange(e) {
+        var color = e.target.value;
+        handleRankChange({ rank: beltToRank({strips: color == "BLUE" ? 1 : 0, color }) });
+    }
+    function handleBeltStripsChange(e) {
+        var strips = parseInt(e.target.value);
+        handleRankChange({ rank: beltToRank({...belt, strips }) });
+    }
+
+    return $("div")(_, [
+        $("select")({
+            value: belt.color,
+            onChange: handleBeltColorChange
+        }, [
+            $("option")({ value: "WHITE" }, "Blanche"),
+            $("option")({ value: "ORANGE" }, "Orange"),
+            $("option")({ value: "GREEN" }, "Verte"),
+            $("option")({ value: "RED" }, "Rouge"),
+            $("option")({ value: "BLUE" }, "Bleue")
+        ]),
+        $("select")({
+            value: belt.strips,
+            onChange: handleBeltStripsChange
+        }, stripsRange.map(i => $("option")({ value: i }, i)))
+    ])
+});
+
+var ThemesForm = $Proxy("theme-config-panel", ({ themesMenu, handleThemeTriggerHoF }) => {
+
+    function elementClassName(theme) {
+        var { isSelected, isAvailable } = themesMenu[theme];
+        return [
+            isSelected ? "isSelected" : "",
+            !isAvailable ? "isNotAvailable" : ""
+        ].filter(clz => !!clz).join(" ")
+    }
+    
+    function elementDisplay(theme) {
+        switch(theme) {
+            case "HYUNG": return "Formes";
+            case "WORDS": return "Vocabulaire";
+            case "HISTORY": return "Histoire";
+            case "MOVEMENTS": return "Mouvements";
+        }
+    }
+
+    return $("ul")(_, Object.keys(themesMenu).map(theme => $("li")({
+        className: elementClassName(theme),
+        onClick: handleThemeTriggerHoF(theme)
+    }, elementDisplay(theme))))
+});
+
+var Button = ({ action, textDisplay }) => {
+    return $("button")({
+        onClick: !!action ? (() => action()) : undefined,
+        disabled: !action
+    }, textDisplay)
+};
+
+var QuizzPanelControl = $Proxy("quizz-panel-control", ({ progression, isSelectionTooSmall }) => {
+    switch(progression.screen) {
+        case "INITIAL":
+            if(isSelectionTooSmall) {
+                return $("p")(_, [
+                    "La sélection n'est pas suffisamment grande pour créer un quizz:",
+                    $("br")(),
+                    "Sélectionne plus de thèmes"
+                ])
+            } else {
+                return $("p")(_, "Commence un quizz !")
+            }
+        case "DISPLAY_QUESTION":
+            return $("p")(_, "[Voici une question très difficile à résoudre]")
+        case "SUCCESS_SCREEN":
+            return $("p")(_, "Bingo, bien joué !")
+        case "FAILURE_SCREEN":
+            return $("p")(_, "Oh non, domage...")
+        case "TERMINAL_SCREEN":
+            return [
+                $("p")(_, "Le jeu est fini"),
+                $("p")(_, `Ton score est de ${progression.getPercentageScore()}%`)
+            ];
+        case "CANCEL_SCREEN":
+            return [
+                $("p")(_, "Le jeu est annulé"),
+                $("p")(_, `Ton score était de ${progression.getPercentageScore()}%`),
+                $("p")(_, `Tu avais répondu à ${progression.getProgressionRate()}% des questions du quizz`)
+            ]
+    }
+});
+
+var QuizzEmitController = $Proxy("quizz-emitter-control", ({ action, screen }) => {
+    switch(screen) {
+        case "INITIAL":
+            var textDisplay = "Jouer !"; break
+        case "DISPLAY_QUESTION":
+            var textDisplay = "Valider mon choix"; break
+        case "SUCCESS_SCREEN":
+        case "FAILURE_SCREEN":
+            var textDisplay = "Continuer"; break
+        case "TERMINAL_SCREEN":
+        case "CANCEL_SCREEN":
+            var textDisplay = "Terminer"; break
+    }
+    
+    return $(Button)({ textDisplay, action })
+});
+var QuizzCancelController = $Proxy("quizz-cancel-control", ({ action }) => {
+    return $(Button)({ action, textDisplay: "Annuler le quizz" })
+});
+var QuizzScoreController = $Proxy("quizz-score-control", ({ page, totalQuestion, display }) => {
+    if(!display)
+        return $("span")(_, "/")
+    return $("span")(_, `${page}/${totalQuestion}`);
+});
+  </script>
+  
+  <script src="stateTree.js"></script>
+  </body>
+</html>
