@@ -16,7 +16,7 @@ public record XmlElement(Element element) {
         return element.hasAttribute(attributeName) ? element.getAttribute(attributeName) : null;
     }
 
-    List<XmlElement> elementsOfSemantic(String tagName) {
+    public List<XmlElement> elementsOfSemantic(String tagName) {
         var nodeList = element.getElementsByTagName(tagName);
         return IntStream.range(0, nodeList.getLength())
                 .mapToObj(nodeList::item)
@@ -25,7 +25,7 @@ public record XmlElement(Element element) {
                 .toList();
     }
 
-    Optional<XmlElement> elementOfSemantic(String tagName) {
+    public Optional<XmlElement> elementOfSemantic(String tagName) {
         var elements = elementsOfSemantic(tagName);
         assert elements.size() <= 1;
         return elements.isEmpty() ? Optional.empty() : Optional.of(elements.get(0));

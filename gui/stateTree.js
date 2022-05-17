@@ -1,9 +1,9 @@
 (function() {
     function PlayerState({ children }) {
-        var [rank, setRank] = React.useState({ number: 10, system: "KUP" });
-        var handleRankChange = React.useCallback(withRank => {
-            if(withRank.rank.system != rank.system || withRank.rank._number != rank.number)
-                setRank(withRank.rank);
+        var [rank, setRank] = React.useState(lowerRankOfSystem("KUP"));
+        var handleRankChange = React.useCallback(_rank => {
+            if(_rank.system != rank.system || _rank.number != rank.number)
+                setRank(_rank);
         }, [rank]);
         
         return children(({ rank, handleRankChange }));
@@ -176,21 +176,21 @@
 
     function App() {
         return $(PlayerState)(_, ({ rank, handleRankChange }) => [
-            $(RankForm)({ rank, handleRankChange }),
-            $(BeltForm)({ rank, handleRankChange }),
+            $(RankFormProxy)({ rank, handleRankChange }),
+            $(BeltFormProxy)({ rank, handleRankChange }),
             $(GameConfigState)({ rank }, ({ themesMenu, handleThemeTriggerHoF }) => [
-                $(ThemesForm)({ themesMenu, handleThemeTriggerHoF }),
+                $(ThemesFormProxy)({ themesMenu, handleThemeTriggerHoF }),
                 $(GameState)({ themesMenu }, ({ progression, questions, handleNewProgression, selectedThemesMenu }) => [
                     $(GameStateMoveAction)({ selectedThemesMenu, progression, handleNewProgression },
                         ({ action, isSelectionTooSmall }) => [
-                            $(QuizzEmitController)({ screen: progression.screen, action }),
-                            $(QuizzPanelControl)({ progression, isSelectionTooSmall })
+                            $(QuizzEmitButtonProxy)({ screen: progression.screen, action }),
+                            $(QuizzPanelProxy)({ progression, isSelectionTooSmall })
                         ]
                     ),
                     $(GameStateCancelAction)({ progression, handleNewProgression },
-                        ({ action }) => $(QuizzCancelController)({ action })
+                        ({ action }) => $(QuizzCancelButtonProxy)({ action })
                     ),
-                    $(QuizzScoreController)({ page: progression.currentQuestionIndex+1, totalQuestion: progression.totalQuestion, display: progression.inActiveGame() })
+                    $(QuizzScoreBoardProxy)({ page: progression.currentQuestionIndex+1, totalQuestion: progression.totalQuestion, display: progression.inActiveGame() })
                 ])
             ])
         ])

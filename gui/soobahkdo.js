@@ -60,6 +60,18 @@ function beltToRank({ color, strips }) {
     return { number, system };
 }
 
+function lowerRankOfSystem(system) {
+    if(system == "DAN") {
+        return {
+            system, number: 1
+        }
+    } else if(system == "KUP") {
+        return {
+            system, number: 10
+        }
+    }
+}
+
 function numberRangeOfRank({ system }) {
     if(system == "KUP")
         return [10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
